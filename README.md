@@ -11,85 +11,97 @@ To perform regular differncing,seasonal adjustment and log transformatio on inte
 5. Display the overall results.
 ### PROGRAM:
 ```
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
-data=pd.read_csv('/content/BMW_Car_Sales_Classification.csv')
-data.head()
 
-data['Year']=pd.to_datetime(data['Year'], format='%Y')
-data.set_index('Year',inplace=True)
+data = pd.read_csv('/mnt/data/GoogleStockPrices.csv')
 
-data['Sales_diff']=data['Sales_Volume']-data['Sales_Volume'].shift(1)
+data['Date'] = pd.to_datetime(data['Date'])
+data.set_index('Date', inplace=True)
 
-result = seasonal_decompose(data['Sales_Volume'], model='additive', period=12)
-data['Sales_diff']=result.resid
+data['Close'] = data['Close'].astype(float)
 
-data['Sales_Volume_log'] = np.log(data['Sales_Volume'])
-data['Sales_Volume_log_diff']=data['Sales_Volume_log']-data['Sales_Volume_log'].shift(1)
+data['Close_diff'] = data['Close'] - data['Close'].shift(1)
 
-result = seasonal_decompose(data['Sales_Volume_log'].dropna(), model='additive',period=12)
-data['Sales_Volume_log_diff']=result.resid
+result = seasonal_decompose(data['Close'].dropna(), model='additive', period=30)
+data['Close_resid'] = result.resid
+
+data['Close_log'] = np.log(data['Close'])
+data['Close_log_diff'] = data['Close_log'] - data['Close_log'].shift(1)
+
+result_log = seasonal_decompose(data['Close_log'].dropna(), model='additive', period=30)
+data['Close_log_resid'] = result_log.resid
 
 plt.figure(figsize=(16, 16))
 
-
-plt.plot(data['Sales_Volume'], label='Original')
+plt.subplot(6, 1, 1)
+plt.plot(data['Close'], label='Original')
 plt.legend(loc='best')
-plt.title('Original Data')
-plt.xlabel('Year')
-plt.ylabel('Sales_Volume')
+plt.title('Original Google Stock Price')
+plt.xlabel('Date')
+plt.ylabel('Close Price')
 
-plt.plot(data['Sales_diff'], label='Regular Difference')
+plt.subplot(6, 1, 2)
+plt.plot(data['Close_diff'], label='Regular Difference', color='orange')
 plt.legend(loc='best')
 plt.title('Regular Differencing')
-plt.xlabel('Year')
-plt.ylabel('Differenced of Sales')
+plt.xlabel('Date')
+plt.ylabel('ΔClose')
 
-plt.plot(data['Sales_Volume_log_diff'], label='Seasonal Adjustment')
+plt.subplot(6, 1, 3)
+plt.plot(data['Close_resid'], label='Seasonal Adjustment', color='green')
 plt.legend(loc='best')
 plt.title('Seasonal Adjustment')
-plt.xlabel('Year')
-plt.ylabel('Seasonally djusted Sales')
+plt.xlabel('Date')
+plt.ylabel('Residual')
 
-plt.plot(data['Sales_Volume_log'], label='Log Transformation')
+plt.subplot(6, 1, 4)
+plt.plot(data['Close_log'], label='Log Transformation', color='purple')
 plt.legend(loc='best')
 plt.title('Log Transformation')
-plt.xlabel('Year')
-plt.ylabel('Log(Sales)')
+plt.xlabel('Date')
+plt.ylabel('Log(Close)')
 
-plt.plot(data['Sales_Volume_log_diff'], label='Log Transformation and Regular Differencing')
+plt.subplot(6, 1, 5)
+plt.plot(data['Close_log_diff'], label='Log Transformation + Differencing', color='brown')
 plt.legend(loc='best')
 plt.title('Log Transformation and Regular Differencing')
-plt.xlabel('Year')
-plt.ylabel('RDiff(Log(Sales))')
+plt.xlabel('Date')
+plt.ylabel('ΔLog(Close)')
 
-plt.plot(data['Sales_Volume_log_diff'], label='Log Transformation and regular Differencing and Seasonal Differencing')
+plt.subplot(6, 1, 6)
+plt.plot(data['Close_log_resid'], label='Log Transformation + Seasonal Adjustment', color='red')
 plt.legend(loc='best')
-plt.title('Log Transformation and Regular Differencing and Seasonal Differencing')
-plt.xlabel('Year')
-plt.ylabel('SDiff(RDiff(Log(Sales)))')
+plt.title('Log Transformation + Seasonal Adjustment')
+plt.xlabel('Date')
+plt.ylabel('Residual')
 
 plt.tight_layout()
 plt.show()
 
-data.plot(kind='line')
+data[['Close', 'Close_diff', 'Close_log', 'Close_log_diff']].plot(
+    subplots=True, figsize=(12, 10), title=['Original', 'Diff', 'Log', 'Log Diff'])
+plt.tight_layout()
+plt.show()
+
 ```
 
 ### OUTPUT:
 
 
 REGULAR DIFFERENCING:
-<img width="903" height="610" alt="image" src="https://github.com/user-attachments/assets/343c91f5-ac56-410c-9340-e3984b57c763" />
+<img width="1019" height="338" alt="image" src="https://github.com/user-attachments/assets/37dbd7b2-4178-421a-ba0e-b91c3a6ff936" />
 
 
 SEASONAL ADJUSTMENT:
-<img width="811" height="612" alt="image" src="https://github.com/user-attachments/assets/00d910f2-dd9f-4e61-82d8-0c5f3218a486" />
+<img width="1015" height="340" alt="image" src="https://github.com/user-attachments/assets/0dc9eda9-506a-4e45-967e-345980ac32ca" />
 
 
 LOG TRANSFORMATION:
-<img width="761" height="589" alt="image" src="https://github.com/user-attachments/assets/24405bb9-8ed2-45d1-9ade-58541dbf4e89" />
+<img width="1053" height="326" alt="image" src="https://github.com/user-attachments/assets/a793916a-7416-4b78-9bec-c821b43420a5" />
 
 
 
